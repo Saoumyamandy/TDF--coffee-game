@@ -1,0 +1,6 @@
+{
+  "name": "Coffee Craft Master",
+  "description": "Discover authentic coffee drinks from around the globe by crafting recipes with classic and world ingredients.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
