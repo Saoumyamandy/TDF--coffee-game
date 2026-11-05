@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { CoffeeCup, CupStyle } from './components/CoffeeCup';
+import { CoffeeCup } from './components/CoffeeCup';
 import { IngredientShelf } from './components/IngredientShelf';
 import { HeaderBar } from './components/HeaderBar';
 import { DiscoveryModal } from './components/DiscoveryModal';
@@ -25,15 +25,6 @@ export default function App() {
       return saved ? Number(saved) : 0;
     } catch {
       return 0;
-    }
-  });
-
-  const [selectedCup, setSelectedCup] = useState<CupStyle>(() => {
-    try {
-      const saved = localStorage.getItem('midnight_cafe_cup');
-      return (saved as CupStyle) || 'glass';
-    } catch {
-      return 'glass';
     }
   });
 
@@ -68,14 +59,6 @@ export default function App() {
     }
   }, [score]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('midnight_cafe_cup', selectedCup);
-    } catch (e) {
-      console.warn('Storage sync error', e);
-    }
-  }, [selectedCup]);
-
   const baristaTitle = useMemo(() => {
     const count = discoveredDrinkIds.length;
     if (count >= 20) return 'GRAND MASTER 👑';
@@ -86,6 +69,7 @@ export default function App() {
     return 'NOVICE ☕';
   }, [discoveredDrinkIds.length]);
 
+  // Compute matched drink based on current ingredients in cup
   const matchedDrink = useMemo<CoffeeDrink | null>(() => {
     if (currentIngredients.length === 0) return null;
 
@@ -115,7 +99,7 @@ export default function App() {
 
   const handleAddIngredient = (ingredient: Ingredient) => {
     if (currentIngredients.length >= 5) {
-      setLastBrewMessage('Cup is full! Taste or clear items.');
+      setLastBrewMessage('Glass is full! Click Brew to test your mix.');
       return;
     }
     playIngredientSound(ingredient);
@@ -182,6 +166,7 @@ export default function App() {
     }
   };
 
+  // Educational Brew Action - Drink is strictly evaluated and revealed HERE only!
   const handleBrewDrink = () => {
     if (currentIngredients.length === 0) return;
 
@@ -199,7 +184,7 @@ export default function App() {
         amount: isNew ? 100 : 50,
       });
 
-      setFloatingBonus(`+${bonus} PTS! ${isNew ? '★ DISCOVERY ★' : 'CRAFTED'}`);
+      setFloatingBonus(`+${bonus} PTS! ${isNew ? '★ NEW DISCOVERY ★' : 'CRAFTED'}`);
       setTimeout(() => setFloatingBonus(null), 2200);
 
       if (isNew) {
@@ -207,6 +192,7 @@ export default function App() {
       }
       setScore((prev) => prev + bonus);
 
+      // Open discovery card revealing the drink name and educational fact!
       setActiveDiscovery({
         drink: matchedDrink,
         isNew,
@@ -216,13 +202,13 @@ export default function App() {
       setLastBrewMessage(null);
     } else {
       coffeeAudio.playClickSound();
-      setLastBrewMessage('No recipe match! Check the Recipe Log.');
+      setLastBrewMessage('Not a recognized recipe! Keep experimenting or check the recipe log.');
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0A0710] text-[#F8EFE4] flex flex-col selection:bg-amber-600 selection:text-white">
-      {/* Particle Effect Burst */}
+      {/* Particle Effect Burst on Discovery */}
       <ParticleCanvas trigger={particleTrigger} onFinished={() => setParticleTrigger(null)} />
 
       {/* Top Bar Header */}
@@ -247,7 +233,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Small Notice / Alert if unmatched */}
+        {/* Small Notice / Alert if unmatched mix */}
         {lastBrewMessage && (
           <div className="py-2 px-3 bg-[#1A1024] border-2 border-black text-[#FDE047] pixel-sub text-xs flex items-center justify-between">
             <span>{lastBrewMessage}</span>
@@ -260,34 +246,28 @@ export default function App() {
           </div>
         )}
 
-        {/* 2-Column Core Game Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-          {/* Left: The Selected Cup & Crafting Drop Area */}
-          <div className="lg:col-span-5 flex flex-col">
-            <CoffeeCup
-              currentIngredients={currentIngredients}
-              onRemoveIngredient={handleRemoveIngredient}
-              onClearCup={handleClearCup}
-              onBrewDrink={handleBrewDrink}
-              matchedDrink={matchedDrink}
-              isDragOver={isDragOver}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              selectedCup={selectedCup}
-              onSelectCup={setSelectedCup}
-            />
-          </div>
+        {/* TOP SECTION: Ingredients Shelf (At the top as requested) */}
+        <section className="w-full">
+          <IngredientShelf
+            onAddIngredient={handleAddIngredient}
+            currentIngredients={currentIngredients}
+            onDragStartIngredient={handleDragStartIngredient}
+          />
+        </section>
 
-          {/* Right: Pantry Inventory Shelf */}
-          <div className="lg:col-span-7 flex flex-col">
-            <IngredientShelf
-              onAddIngredient={handleAddIngredient}
-              currentIngredients={currentIngredients}
-              onDragStartIngredient={handleDragStartIngredient}
-            />
-          </div>
-        </div>
+        {/* BOTTOM SECTION: Transparent Glass Crafting Vessel & Brew Controls */}
+        <section className="w-full flex justify-center">
+          <CoffeeCup
+            currentIngredients={currentIngredients}
+            onRemoveIngredient={handleRemoveIngredient}
+            onClearCup={handleClearCup}
+            onBrewDrink={handleBrewDrink}
+            isDragOver={isDragOver}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          />
+        </section>
 
         {/* Quick Collection Tracker Bar */}
         <section className="p-3 bg-[#130D1F] border-4 border-[#2D1B42] pixel-box">
@@ -336,7 +316,7 @@ export default function App() {
         </section>
       </main>
 
-      {/* Discovery Modal */}
+      {/* Discovery Modal - Shows name and educational cultural fact on successful brew! */}
       <DiscoveryModal
         drink={activeDiscovery?.drink || null}
         isNewDiscovery={activeDiscovery?.isNew || false}
@@ -365,7 +345,7 @@ export default function App() {
         onClose={() => setIsPosterOpen(false)}
       />
 
-      {/* Minimal Midnight Footer */}
+      {/* Minimal Footer */}
       <footer className="mt-4 border-t-2 border-black bg-[#0D0817] py-2.5 px-4 text-center pixel-sub text-[9px] text-purple-400/60">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <span>🌙 MIDNIGHT CAFÉ</span>

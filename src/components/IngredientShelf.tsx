@@ -60,8 +60,12 @@ export const IngredientShelf: React.FC<IngredientShelfProps> = ({
         </div>
       </div>
 
-      {/* Grid of Pixel Icon Slots with Text at Bottom */}
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-3 overflow-y-auto max-h-[500px] p-1 z-10">
+      {/* Grid of Pixel Icon Slots with Text at Bottom (Top Shelf Layout) */}
+      <div
+        className={`grid grid-cols-3 sm:grid-cols-5 ${
+          activeTab === 'basic' ? 'lg:grid-cols-9' : 'lg:grid-cols-5 xl:grid-cols-10'
+        } gap-2.5 p-1 z-10`}
+      >
         {filteredIngredients.map((ingredient) => {
           const count = getIngredientCount(ingredient.id);
 

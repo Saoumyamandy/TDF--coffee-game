@@ -1,43 +1,28 @@
 import React, { useState } from 'react';
-import { Sparkles, Trash2, CheckCircle2 } from 'lucide-react';
-import { Ingredient, CoffeeDrink } from '../data/coffeeData';
+import { Sparkles, Trash2 } from 'lucide-react';
+import { Ingredient } from '../data/coffeeData';
 import { PixelIcon } from './PixelIcons';
-
-export type CupStyle = 'mug' | 'glass' | 'clay' | 'demitasse';
 
 interface CoffeeCupProps {
   currentIngredients: Ingredient[];
   onRemoveIngredient: (index: number) => void;
   onClearCup: () => void;
   onBrewDrink: () => void;
-  matchedDrink: CoffeeDrink | null;
   isDragOver: boolean;
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
-  selectedCup: CupStyle;
-  onSelectCup: (cup: CupStyle) => void;
 }
-
-const CUP_OPTIONS: { id: CupStyle; label: string; icon: string }[] = [
-  { id: 'mug', label: 'MIDNIGHT MUG', icon: '☕' },
-  { id: 'glass', label: 'NEON GLASS', icon: '🥃' },
-  { id: 'clay', label: 'CLAY OLLA', icon: '🏺' },
-  { id: 'demitasse', label: 'DEMITASSE', icon: '✨' },
-];
 
 export const CoffeeCup: React.FC<CoffeeCupProps> = ({
   currentIngredients,
   onRemoveIngredient,
   onClearCup,
   onBrewDrink,
-  matchedDrink,
   isDragOver,
   onDragOver,
   onDragLeave,
   onDrop,
-  selectedCup,
-  onSelectCup,
 }) => {
   const [isBrewingAnim, setIsBrewingAnim] = useState(false);
 
@@ -64,7 +49,7 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
     }, 320);
   };
 
-  // Flat solid color for liquid inside the glass (Zero gradient - simple clean look)
+  // Flat solid color for liquid inside the glass (Zero gradient - transparent glass look)
   const getLiquidColor = () => {
     if (currentIngredients.length === 0) return 'transparent';
     if (hasEggYolk) return '#EAB308'; // flat golden custard
@@ -79,59 +64,30 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
 
   const fillPercentage = Math.min(100, Math.max(0, currentIngredients.length * 20));
 
-  // Determine Cup Dimensions & Style Classes (Transparent glass look, no white fill)
-  const getCupVesselClasses = () => {
-    switch (selectedCup) {
-      case 'glass':
-        // Pure transparent glass - no white background, transparent with subtle glass outline
-        return 'w-44 sm:w-48 h-64 sm:h-72 border-4 border-white/25 bg-transparent';
-      case 'clay':
-        return 'w-52 sm:w-56 h-60 sm:h-64 border-4 border-[#5E2B1D] bg-[#2E1610] shadow-[inset_4px_4px_0px_#1B0C08]';
-      case 'demitasse':
-        return 'w-44 sm:w-48 h-48 sm:h-52 border-4 border-[#3D2952] bg-[#1E1428]';
-      case 'mug':
-      default:
-        return 'w-48 sm:w-54 h-60 sm:h-68 border-4 border-black bg-[#281A38] shadow-[inset_-12px_0px_0px_#170D24]';
-    }
-  };
-
   return (
     <div
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`relative flex flex-col items-center justify-between p-4 sm:p-6 pixel-box transition-all duration-150 ${
+      className={`relative flex flex-col items-center justify-between p-4 sm:p-5 pixel-box transition-all duration-150 w-full max-w-lg mx-auto ${
         isDragOver
           ? 'bg-[#1D142E] border-4 border-[#FDE047] ring-4 ring-[#FDE047]/40 scale-[1.01]'
           : 'bg-[#130D1F] border-4 border-[#2D1B42]'
       }`}
     >
-      {/* Crescent Moon & Star Ambient Decors */}
-      <div className="absolute top-3 left-4 text-amber-200/40 pixel-font text-[10px] pointer-events-none select-none flex items-center gap-1.5">
-        <span>🌙</span>
-        <span className="text-[8px] text-amber-300/60">MIDNIGHT VIBES</span>
+      {/* Top Header Tag */}
+      <div className="w-full flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5 text-amber-200/50 pixel-font text-[9px]">
+          <span>🌙</span>
+          <span>CRAFTING GLASS</span>
+        </div>
+        <span className="pixel-font text-[8px] text-purple-300 bg-black/40 px-2 py-0.5 border border-[#3E2319]">
+          {currentIngredients.length}/5 INGREDIENTS
+        </span>
       </div>
 
-      {/* Cup Style Selector (Player Selects Cup) */}
-      <div className="w-full flex items-center justify-center gap-1.5 my-1 z-10 pt-4">
-        {CUP_OPTIONS.map((cup) => (
-          <button
-            key={cup.id}
-            onClick={() => onSelectCup(cup.id)}
-            className={`pixel-btn px-2 sm:px-2.5 py-1 text-[8px] sm:text-[9px] pixel-font flex items-center gap-1 border-2 border-black transition-colors ${
-              selectedCup === cup.id
-                ? 'bg-[#F59E0B] text-black font-bold shadow-[2px_2px_0px_#000]'
-                : 'bg-[#1F1433] text-purple-200/70 hover:text-white'
-            }`}
-          >
-            <span>{cup.icon}</span>
-            <span>{cup.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* The Central Coffee Glass / Vessel */}
-      <div className="relative my-3 flex items-center justify-center">
+      {/* The Central Transparent Glass Vessel */}
+      <div className="relative my-2 flex items-center justify-center">
         {/* Steam Puffs */}
         {(hasEspresso || hasHotWater || hasMilk) && currentIngredients.length > 0 && (
           <div className="absolute -top-12 flex justify-center gap-5 pointer-events-none z-20">
@@ -154,14 +110,14 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
           </div>
         )}
 
-        {/* Selected Cup Vessel */}
+        {/* Clean Transparent Glass Vessel */}
         <div
-          className={`relative ${getCupVesselClasses()} shadow-[6px_6px_0px_#000] p-2 flex flex-col justify-end overflow-hidden`}
+          className="relative w-44 sm:w-48 h-60 sm:h-64 border-4 border-white/25 bg-transparent shadow-[6px_6px_0px_#000] p-2 flex flex-col justify-end overflow-hidden"
         >
           {/* Rim border line */}
           <div className="absolute top-0 inset-x-0 border-b border-black/40" />
 
-          {/* Liquid Fill Stack (Simple flat pixel color - no gradients, no white overlay) */}
+          {/* Liquid Fill Stack (Zero gradient, clean flat pixel colors) */}
           <div
             className={`relative w-full transition-all duration-300 flex flex-col justify-end overflow-hidden border-t-2 border-black ${
               isBrewingAnim ? 'scale-y-105 filter brightness-125' : ''
@@ -172,7 +128,7 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
               opacity: currentIngredients.length > 0 ? 1 : 0,
             }}
           >
-            {/* If condensed milk + espresso: clean solid dual-layer (Café Bombón style) */}
+            {/* If condensed milk + espresso: clean solid dual-layer */}
             {hasCondensedMilk && hasEspresso && (
               <div className="absolute bottom-0 inset-x-0 h-2/5 bg-[#FEEFBD] border-t-2 border-black" />
             )}
@@ -227,33 +183,24 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
 
           {/* Empty Vessel State */}
           {currentIngredients.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
-              <span className="text-xl mb-1">☕</span>
-              <p className="pixel-font text-[9px] text-amber-200">
-                DROP INGREDIENTS
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center pointer-events-none">
+              <span className="text-xl mb-1 opacity-70">☕</span>
+              <p className="pixel-font text-[9px] text-amber-200/80">
+                DROP INGREDIENTS HERE
               </p>
             </div>
           )}
         </div>
-
-        {/* Cup Handle (for Mug or Demitasse) */}
-        {(selectedCup === 'mug' || selectedCup === 'demitasse') && (
-          <div
-            className={`border-4 border-l-0 border-black bg-[#2A1D3B] shadow-[4px_4px_0px_#000] ${
-              selectedCup === 'demitasse' ? 'w-4 h-16' : 'w-5 sm:w-6 h-20 sm:h-24'
-            }`}
-          />
-        )}
       </div>
 
-      {/* Solid Pixel Coaster (No gradient) */}
-      <div className="w-56 sm:w-64 h-3 bg-[#241738] border-2 border-black shadow-[2px_2px_0px_#000] -mt-1 mb-2" />
+      {/* Solid Pixel Coaster */}
+      <div className="w-52 sm:w-56 h-3 bg-[#241738] border-2 border-black shadow-[2px_2px_0px_#000] -mt-1 mb-2" />
 
-      {/* Compact Cup Ingredients Bar */}
+      {/* Cup Contents Tray */}
       <div className="w-full">
         <div className="flex items-center justify-between text-xs text-amber-300 mb-1.5">
           <span className="pixel-font text-[8px] text-purple-200">
-            CUP ({currentIngredients.length}/5)
+            GLASS CONTENTS ({currentIngredients.length}/5)
           </span>
           {currentIngredients.length > 0 && (
             <button
@@ -268,7 +215,7 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
 
         {currentIngredients.length === 0 ? (
           <div className="py-2 px-3 bg-black/40 border border-dashed border-purple-900/60 text-center pixel-sub text-[10px] text-purple-400/50">
-            [ CUP EMPTY ]
+            [ GLASS EMPTY - SELECT INGREDIENTS ABOVE ]
           </div>
         ) : (
           <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
@@ -282,6 +229,7 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
                 <button
                   onClick={() => onRemoveIngredient(idx)}
                   className="w-4 h-4 text-red-400 hover:text-red-200 flex items-center justify-center text-xs ml-0.5"
+                  aria-label={`Remove ${item.name}`}
                 >
                   ×
                 </button>
@@ -291,7 +239,7 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
         )}
       </div>
 
-      {/* Brew Button */}
+      {/* Brew Button - Pure Educational Mystery (Never reveals drink name until clicked!) */}
       <div className="w-full mt-3">
         <button
           onClick={handleBrewClick}
@@ -299,13 +247,11 @@ export const CoffeeCup: React.FC<CoffeeCupProps> = ({
           className={`w-full py-3 px-4 font-bold text-xs pixel-font pixel-btn flex items-center justify-center gap-2 border-2 border-black ${
             currentIngredients.length === 0
               ? 'bg-[#1E132E] text-purple-400/30 cursor-not-allowed'
-              : matchedDrink
-              ? 'bg-gradient-to-r from-emerald-500 to-amber-500 text-white shadow-[4px_4px_0px_#000] ring-2 ring-emerald-300'
               : 'bg-amber-600 hover:bg-amber-500 text-white shadow-[4px_4px_0px_#000]'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-          <span>{matchedDrink ? `BREW: ${matchedDrink.name}!` : 'BREW COFFEE'}</span>
+          <span>BREW COFFEE</span>
         </button>
       </div>
     </div>
